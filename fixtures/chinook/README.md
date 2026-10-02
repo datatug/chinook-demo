@@ -1,12 +1,22 @@
-# Pinned Chinook acceptance data
+# Pinned Chinook
 
-`phase1-acceptance.json` records the immutable Chinook SQLite input used by the Phase 1
-demo. The database stays in its owning `datatug/chinook-database` repository; this demo
-does not vendor another copy. Before transport acceptance, check out the recorded
-revision and verify the database file:
+`chinookdb.json` is the one pin of the Chinook SQLite file: its address on chinookdb.com, a
+mirror address (the public `datatug/chinookdb` repository on jsDelivr at a fixed commit,
+serving the same file), the SHA-256 both must produce, and the upstream revision
+(`lerocha/chinook-database`) it was built from. `scripts/fetch-chinook.sh` downloads and
+verifies it; nothing else decides which file is accepted. The database is not vendored here.
+
+`phase1-acceptance.json` records the customers, invoice counts and support-note counts the
+Phase 1 demo's tests expect from that file. Chinook's rows are the same in the chinookdb.com
+revision as in the `datatug/chinook-database` revision this repository pinned before (every
+count below holds on both), except two things: every `Invoice.InvoiceDate` (2021 on
+chinookdb.com, 2009 before) and two `Track` text fields (`Name` of track 728, `Composer` of
+track 2). Nothing here reads either.
+
+Fetch and verify the file:
 
 ```sh
-shasum -a 256 ChinookDatabase/DataSources/Chinook_Sqlite.sqlite
+scripts/fetch-chinook.sh            # prints the path, .demo-data/chinook-source.sqlite
 ```
 
 The selected rows and counts come from these read-only queries against that file:
@@ -47,9 +57,10 @@ HTTP fixtures. It does not claim to have opened the external Chinook database. T
 database verification is explicit and fails on a hash, country or count mismatch:
 
 ```sh
-DATATUG_CHINOOK_DB=/path/to/Chinook_Sqlite.sqlite \
-  go -C tests test . -run TestPinnedChinookDatabase
+scripts/fetch-chinook.sh
+go -C tests test . -run TestPinnedChinookDatabase
 ```
 
-Selecting this test by name without `DATATUG_CHINOOK_DB` fails, so an acceptance
-harness cannot silently turn a missing pinned database into a successful check.
+The test reads `DATATUG_CHINOOK_DB` if set, else the file `scripts/fetch-chinook.sh` leaves in
+`.demo-data`. Selecting it by name without either fails, so an acceptance harness cannot
+silently turn a missing database into a successful check.

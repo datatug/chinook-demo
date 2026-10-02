@@ -4,11 +4,14 @@ import (
 	"context"
 	"crypto/sha256"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/datatug/datatug-cli/pkg/secureread"
@@ -140,6 +143,105 @@ func heroRows(t *testing.T, chinookPath string) ([]string, map[string]map[string
 	return order, byCountry
 }
 
+// goldenResult is golden/sales-per-capita.json: the 24 rows of the hero query in result
+// order, rounded to two decimals, with what they were computed from.
+type goldenResult struct {
+	Query        string `json:"query"`
+	ComputedFrom struct {
+		ProjectCommit string `json:"projectCommit"`
+		Chinook       struct {
+			SQLiteSHA256      string `json:"sqliteSha256"`
+			InvoiceJSONSHA256 string `json:"invoiceJsonSha256"`
+			UpstreamRevision  string `json:"upstreamRevision"`
+		} `json:"chinook"`
+		Geo struct {
+			VendoredFrom string `json:"vendoredFrom"`
+		} `json:"geo"`
+		QueryDTQLSHA256 string `json:"queryDtqlSha256"`
+	} `json:"computedFrom"`
+	Invoices int `json:"invoices"`
+	Rows     []struct {
+		Rank            int     `json:"rank"`
+		Country         string  `json:"country"`
+		TotalSales      float64 `json:"totalSales"`
+		Population      int64   `json:"population"`
+		PopulationYear  int64   `json:"populationYear"`
+		SalesPerMillion float64 `json:"salesPerMillion"`
+	} `json:"rows"`
+}
+
+func loadGolden(t *testing.T) goldenResult {
+	t.Helper()
+	b, err := os.ReadFile(filepath.Join(projectDir, "golden", "sales-per-capita.json"))
+	require.NoError(t, err)
+	var golden goldenResult
+	require.NoError(t, json.Unmarshal(b, &golden))
+	return golden
+}
+
+func twoPlaces(v float64) string { return strconv.FormatFloat(v, 'f', 2, 64) }
+
+// TestGoldenResultFile checks the golden file against the repository's own inputs, with no
+// Chinook file needed: it names the data it was computed from, and those must still be
+// the data in this repository. The headline numbers are the ones the landings quote.
+func TestGoldenResultFile(t *testing.T) {
+	golden := loadGolden(t)
+	assert.Equal(t, heroQueryID, golden.Query)
+	assert.Equal(t, 412, golden.Invoices)
+	require.Len(t, golden.Rows, 24)
+
+	pin := loadChinookPin(t)
+	assert.Equal(t, pin.SQLite.SHA256, golden.ComputedFrom.Chinook.SQLiteSHA256)
+	assert.Equal(t, pin.Upstream.Revision, golden.ComputedFrom.Chinook.UpstreamRevision)
+
+	catalogBytes, err := os.ReadFile(filepath.Join(projectDir, "web", "catalogs", "chinook", "chinook.db.json"))
+	require.NoError(t, err)
+	var catalog struct {
+		SHA256   map[string]string `json:"sha256"`
+		Upstream struct {
+			Revision string `json:"revision"`
+		} `json:"upstream"`
+	}
+	require.NoError(t, json.Unmarshal(catalogBytes, &catalog))
+	assert.Equal(t, catalog.SHA256["Invoice"], golden.ComputedFrom.Chinook.InvoiceJSONSHA256)
+	assert.Equal(t, pin.Upstream.Revision, catalog.Upstream.Revision, "the web catalog and the SQLite pin name the same upstream revision")
+
+	vendored, err := os.ReadFile(filepath.Join(projectDir, "data", "geo", ".vendored-from"))
+	require.NoError(t, err)
+	fields := map[string]string{}
+	for _, line := range strings.Fields(string(vendored)) {
+		if key, value, ok := strings.Cut(line, "="); ok {
+			fields[key] = value
+		}
+	}
+	assert.Equal(t, fields["repository"]+"@"+fields["commit"], golden.ComputedFrom.Geo.VendoredFrom)
+
+	dtql, err := os.ReadFile(filepath.Join(projectDir, "queries", "sales", "chinook-sales-per-capita.query.dtql"))
+	require.NoError(t, err)
+	assert.Equal(t, fmt.Sprintf("%x", sha256.Sum256(dtql)), golden.ComputedFrom.QueryDTQLSHA256, "the saved query changed: regenerate golden/sales-per-capita.json")
+
+	// The headline: Ireland first at 8.32, Czech Republic 8.29, Finland 7.37, USA 1.53 at rank 17.
+	assert.Equal(t, "Ireland", golden.Rows[0].Country)
+	assert.Equal(t, "8.32", twoPlaces(golden.Rows[0].SalesPerMillion))
+	assert.Equal(t, "45.62", twoPlaces(golden.Rows[0].TotalSales))
+	assert.Equal(t, "Czech Republic", golden.Rows[1].Country)
+	assert.Equal(t, "8.29", twoPlaces(golden.Rows[1].SalesPerMillion))
+	assert.Equal(t, "Finland", golden.Rows[2].Country)
+	assert.Equal(t, "7.37", twoPlaces(golden.Rows[2].SalesPerMillion))
+	assert.Equal(t, "USA", golden.Rows[16].Country)
+	assert.Equal(t, 17, golden.Rows[16].Rank)
+	assert.Equal(t, "1.53", twoPlaces(golden.Rows[16].SalesPerMillion))
+
+	snapshot := snapshotPopulation(t)
+	for i, row := range golden.Rows {
+		assert.Equal(t, i+1, row.Rank)
+		assert.Equal(t, snapshot[row.Country], row.Population, "%s: population differs from data/geo", row.Country)
+		if i > 0 {
+			assert.GreaterOrEqual(t, golden.Rows[i-1].SalesPerMillion, row.SalesPerMillion, "row %d out of order", i)
+		}
+	}
+}
+
 // TestGeoSnapshotPinned pins the committed reference data the hero query reads.
 func TestGeoSnapshotPinned(t *testing.T) {
 	executor := secureread.NewExecutor(secureread.Session{Unrestricted: true})
@@ -234,30 +336,27 @@ func TestHeroQuery_SyntheticInvoices(t *testing.T) {
 	}
 }
 
-// chinookForHeroQuery locates the pinned Chinook SQLite file and returns a copy
+// chinookForHeroQuery locates the pinned Chinook SQLite file (chinookdb.com's, see
+// fixtures/chinook/chinookdb.json) and returns a copy
 // with the `id` column the DALgo SQLite adapter needs (what
 // scripts/prepare_chinook.py does). It skips when the file is not available,
 // unless DATATUG_REQUIRE_CHINOOK is set (CI sets it), when that is a failure.
 func chinookForHeroQuery(t *testing.T) string {
 	t.Helper()
-	src := os.Getenv("DATATUG_CHINOOK_DB")
+	src := chinookSourcePath()
 	if src == "" {
-		sibling := filepath.Join("..", "..", "chinook-database", "ChinookDatabase", "DataSources", "Chinook_Sqlite.sqlite")
-		if _, err := os.Stat(sibling); err != nil {
-			const need = "DATATUG_CHINOOK_DB (or a chinook-database checkout beside this repository) is required for the pinned Chinook check"
-			if os.Getenv("DATATUG_REQUIRE_CHINOOK") != "" {
-				t.Fatal(need + "; DATATUG_REQUIRE_CHINOOK is set, so a missing file is a failure")
-			}
-			t.Skip(need)
+		const need = "DATATUG_CHINOOK_DB (or the file scripts/fetch-chinook.sh leaves in .demo-data) is required for the pinned Chinook check"
+		if os.Getenv("DATATUG_REQUIRE_CHINOOK") != "" {
+			t.Fatal(need + "; DATATUG_REQUIRE_CHINOOK is set, so a missing file is a failure")
 		}
-		src = sibling
+		t.Skip(need)
 	}
 	f, err := os.Open(src)
 	require.NoError(t, err)
 	raw, err := io.ReadAll(f)
 	require.NoError(t, err)
 	require.NoError(t, f.Close())
-	require.Equal(t, loadAcceptanceFixture(t).Database.SHA256, fmt.Sprintf("%x", sha256.Sum256(raw)), "not the pinned Chinook database")
+	require.Equal(t, loadChinookPin(t).SQLite.SHA256, fmt.Sprintf("%x", sha256.Sum256(raw)), "not the pinned Chinook database")
 
 	dst := filepath.Join(t.TempDir(), "chinook.sqlite")
 	require.NoError(t, os.WriteFile(dst, raw, 0o600))
@@ -317,4 +416,27 @@ func TestHeroQuery_PinnedChinook(t *testing.T) {
 		assert.Equal(t, pinned.Year, int64(number(t, rows[name]["populationYear"], "populationYear")), name)
 	}
 	assert.Equal(t, rankedDescending(want), order, "the query returns the countries ranked by sales per million, highest first")
+
+	// The golden result: the same 24 countries in the same order, every value equal after
+	// rounding to two decimals, and every one of the 412 invoices accounted for.
+	golden := loadGolden(t)
+	require.Len(t, order, len(golden.Rows))
+	for i, g := range golden.Rows {
+		require.Equal(t, g.Country, order[i], "rank %d", i+1)
+		row := rows[g.Country]
+		assert.Equal(t, twoPlaces(g.TotalSales), twoPlaces(number(t, row["totalSales"], "totalSales")), g.Country)
+		assert.Equal(t, g.Population, int64(number(t, row["population"], "population")), g.Country)
+		assert.Equal(t, g.PopulationYear, int64(number(t, row["populationYear"], "populationYear")), g.Country)
+		assert.Equal(t, twoPlaces(g.SalesPerMillion), twoPlaces(number(t, row["salesPerMillion"], "salesPerMillion")), g.Country)
+	}
+	var invoices int
+	require.NoError(t, db.QueryRow(`SELECT COUNT(*) FROM Invoice`).Scan(&invoices))
+	assert.Equal(t, golden.Invoices, invoices, "invoices in the Chinook file")
+	var inGoldenCountries int
+	for country := range totals {
+		var n int
+		require.NoError(t, db.QueryRow(`SELECT COUNT(*) FROM Invoice WHERE BillingCountry = ?`, country).Scan(&n))
+		inGoldenCountries += n
+	}
+	assert.Equal(t, invoices, inGoldenCountries, "every invoice is in one of the 24 countries")
 }

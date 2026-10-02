@@ -65,37 +65,73 @@ relative to their population?" with no AI and no network: real Chinook invoices,
 a country alias table, and a committed World Bank population snapshot.
 
 ```text
-Invoice.BillingCountry ("USA", "Czech Republic")      chinook   SQLite, the pinned Chinook file
+Invoice.BillingCountry ("USA", "Czech Republic")      chinook   SQLite, the Chinook file from chinookdb.com
   -> country_aliases.alias -> country (ISO2 key)      geo       inGitDB, data/geo
     -> population_wb.country -> population, year      geo       World Bank SP.POP.TOTL
   -> sum(Total), population, sum(Total) / population * 1,000,000, ordered descending
 ```
 
-Run the whole thing (starts a local OpenVaultDB server, runs the query with the
-DataTug CLI, prints the top 10 with totals rounded to 2 decimals, stops the server):
+Run the whole thing (fetches Chinook, runs the query with the DataTug CLI, prints the
+top 10 with totals rounded to 2 decimals, and compares the full result with the golden
+file):
 
 ```sh
 scripts/run-hero-demo.sh          # summary table; --json prints the full result
+scripts/run-hero-demo.sh --ovdb   # also start OpenVaultDB and cross-check it
 ```
 
-It needs `bash`, `python3` (3.10 or newer), `curl`, `datatug` (0.51.0 or newer) and
-`ovdb` (0.19.0 or newer) on `PATH`, and prints a clear message when one is missing or
-too old. The pinned Chinook file comes from `CHINOOK_SQLITE`, else `../chinook-database`
-beside this repository, else the pinned revision is fetched with `git` into
-`.demo-data` (git-ignored). The pin is one file,
-[fixtures/chinook/phase1-acceptance.json](../fixtures/chinook/phase1-acceptance.json): its
-repository, revision, path and SHA-256 decide what is fetched and what is accepted, and
-the script and `scripts/prepare_chinook.py` refuse any file whose SHA-256 differs.
-OVDB is served on the port named by the query's `federation.ovdbBaseUrl` (50501); if
-that port is taken the script says so and uses another one (`OVDB_PORT=<port>` forces a
-port). It only starts, and only stops, the one `ovdb` process it launched.
+It needs `bash`, `python3` (3.10 or newer), `curl` and `datatug` (0.51.0 or newer) on
+`PATH` (and `ovdb`, 0.19.0 or newer, with `--ovdb`), and prints a clear message when one
+is missing or too old. The Chinook file is fetched by `scripts/fetch-chinook.sh` from
+`https://chinookdb.com/data/chinook.sqlite` into `.demo-data` (git-ignored); `CHINOOK_SQLITE`
+names a file to use instead. The pin is one file,
+[fixtures/chinook/chinookdb.json](../fixtures/chinook/chinookdb.json): the address, the mirror
+address and the SHA-256 decide what is fetched and what is accepted, and the fetch script and
+`scripts/prepare_chinook.py` refuse any file whose SHA-256 differs. If chinookdb.com does not
+answer, the fetch uses the mirror (the public `datatug/chinookdb` repository on jsDelivr at a
+fixed commit, the same file, the same SHA-256) and says so; a file that answers with the wrong
+SHA-256 is an error. With `--ovdb`, OVDB is served on the port named by the query's
+`federation.ovdbBaseUrl` (50501); if that port is taken the script says so and uses another
+one (`OVDB_PORT=<port>` forces a port). It only starts, and only stops, the one `ovdb`
+process it launched.
 
 Or run just the query:
 
 ```sh
-python3 scripts/prepare_chinook.py "$CHINOOK_SQLITE" .demo-data/chinook.sqlite
+python3 scripts/prepare_chinook.py "$(scripts/fetch-chinook.sh)" .demo-data/chinook.sqlite
 datatug query run --project . --query sales/chinook-sales-per-capita --env local --as boss --role admin --format json
 ```
+
+### The golden result
+
+[golden/sales-per-capita.json](../golden/sales-per-capita.json) is the expected output: the 24
+countries in result order (Ireland first at 8.32 per million, Czech Republic 8.29, Finland 7.37,
+USA 17th at 1.53) with `totalSales` and `salesPerMillion` rounded to two decimals (the engine
+returns floating point such as `303.9599999999999`) and `population` and `populationYear`
+exact, from 412 invoices. It records what it was computed from: the Chinook SQLite SHA-256 and
+upstream revision, the SHA-256 of the Invoice JSON file the browser reads, the vendored geo
+commit, the SHA-256 of the saved query, and `projectCommit`, the commit of this repository
+whose files it was computed from (a file cannot name its own commit). The Go tests
+(`TestGoldenResultFile` always; `TestHeroQuery_PinnedChinook` with the Chinook file) and
+`scripts/run-hero-demo.sh` compare against it. After an intended change of data, regenerate it
+and review the diff:
+
+```sh
+scripts/run-hero-demo.sh --json > /dev/null || true   # the comparison may fail: that is why you regenerate
+python3 scripts/compare-golden.py .demo-data/last-result.json golden/sales-per-capita.json \
+  --chinook .demo-data/chinook.sqlite --update
+```
+
+### The `web` environment
+
+[web/](../web) says where a browser reads each database: `web/catalogs/chinook/chinook.db.json`
+(the `https-json` catalog: `https://chinookdb.com/data/json/chinook.{table}.json`, the mirror,
+the key column and the SHA-256 of the Invoice file) and `web/catalogs/geo/geo.db.json`. They are
+at the project root rather than under `environments/web/` because the released `datatug` CLI
+(`ServerRef.Validate` in datatug-core) rejects an environment whose server driver is
+`https-json` or `ingitdb`, and `datatug validate` must stay green. `scripts/check-web-files.mjs`
+validates them against the JSON Schema published by `datatug/datatug-apps` (pinned by commit)
+and checks the checksums; see the CI table in the [README](../README.md).
 
 - **What is on the query path.** The DataTug CLI reads the `local` environment's
   catalogs directly: `chinook` (SQLite, the derived copy) and `geo` (inGitDB,
@@ -132,27 +168,30 @@ datatug query run --project . --query sales/chinook-sales-per-capita --env local
   safe whole integer, got 1.98`. A flat plan alone would therefore not fix it: the
   amounts would also have to be strings or integer minor units. So `totalSales` is
   floating point and shows noise such as `303.9599999999999`; round for display.
-- **Tests.** `go -C tests test ./...` pins the snapshot, runs the saved query over
-  invented invoices, and, with `DATATUG_CHINOOK_DB` (or a `chinook-database` checkout
-  beside this repository), over the real Chinook file, checking Ireland, USA and Canada
-  and the ranking against values computed from the committed snapshot. CI runs it
-  against the pinned Chinook revision (`.github/workflows/ci.yml`), so the headline
-  numbers are checked by an automated run, not only by hand.
+- **Tests.** `go -C tests test ./...` pins the snapshot, checks the golden file against the
+  repository's own inputs, runs the saved query over invented invoices, and, with
+  `DATATUG_CHINOOK_DB` (or the file `scripts/fetch-chinook.sh` leaves in `.demo-data`), over
+  the real Chinook file, checking Ireland, USA and Canada, the ranking against values computed
+  from the committed snapshot, and every row against the golden file. CI's `hero` job runs it
+  against the file from chinookdb.com and then runs the script with the released CLI
+  (`.github/workflows/ci.yml`), so the headline numbers are checked by an automated run, not
+  only by hand.
 
 ### Simulation and verification boundaries
 
 What the hero demo does for real, and what it does not:
 
-- **Real:** every number. Chinook invoices (the pinned SQLite file), the committed World
+- **Real:** every number. Chinook invoices (chinookdb.com's SQLite file, verified by SHA-256), the committed World
   Bank snapshot and the alias table are read, joined and aggregated by the DataTug CLI's
   federated DTQL executor; the same inputs always give the same rows. No AI is involved
   and no value is mocked.
-- **Verified by automated tests:** the saved query over the real pinned Chinook file
-  (the Go executor, in CI) and over invented invoices (always); the snapshot's shape and
-  provenance; that the vendored geo data matches geo-ingitdb.
-- **Cross-checked, not executed through OVDB:** the script starts OVDB and confirms that it
-  serves both databases and that its Ireland population equals the CLI's. The query itself
-  is not run through OVDB by the script.
+- **Verified by automated tests:** the saved query over the real Chinook file from
+  chinookdb.com (the Go executor and the released CLI, in CI) against the golden result, and over
+  invented invoices (always); the snapshot's shape and provenance; that the vendored geo data
+  matches geo-ingitdb; the files a browser reads (`web/`), against their schemas and checksums.
+- **Cross-checked, not executed through OVDB:** with `--ovdb` the script starts OVDB and
+  confirms that it serves both databases and that its Ireland population equals the CLI's. The
+  query itself is not run through OVDB by the script.
 - **Browser (TypeScript) executor: not working for this query yet.** The web app runs
   federated queries with `runFederatedQuery` (datatug-apps) over `@dalgo/core`. Run
   against this OVDB in Node (with `fake-indexeddb` standing in for the browser's

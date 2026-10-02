@@ -1,0 +1,14 @@
+{
+  "source": "https://chinookdb.com",
+  "sqlite": {
+    "url": "https://chinookdb.com/data/chinook.sqlite",
+    "mirrorUrl": "https://cdn.jsdelivr.net/gh/datatug/chinookdb@0b6bb6ba22f680c9fb2fea9ec8107a8638dd8dc4/public/data/chinook.sqlite",
+    "sha256": "7651ba378ac2fcd0dfc3c66fb101f7a7eed3ba39a612ec642b96e20702061f15",
+    "bytes": 1007616
+  },
+  "upstream": {
+    "repository": "https://github.com/lerocha/chinook-database",
+    "revision": "7f67772503d71ba90f19283c38e93923addb43fa",
+    "licence": "MIT"
+  }
+}

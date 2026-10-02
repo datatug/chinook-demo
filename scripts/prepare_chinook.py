@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build an OVDB-readable SQLite copy of the pinned Chinook database.
+"""Build an OVDB-readable SQLite copy of the Chinook database from chinookdb.com.
 
 DALgo's SQLite adapter addresses records by an `id` column, which the upstream
 Chinook tables do not have. This copies the source file, adds a stable text
@@ -7,12 +7,13 @@ Chinook tables do not have. This copies the source file, adds a stable text
 can emit the strict OpenVaultDB manifest for the result. The logic mirrors
 openvaultdb/cloud/server/prepare_fixture.py.
 
-The one pin is fixtures/chinook/phase1-acceptance.json (repository,
-revision, path and SHA-256 of the database file); the source must match its
-SHA-256. Requires Python 3.10 or newer.
+The one pin is fixtures/chinook/chinookdb.json (the chinookdb.com address, its
+jsDelivr mirror and the SHA-256 of the database file, plus the upstream
+revision it was built from); the source must match that SHA-256. Fetch it with
+scripts/fetch-chinook.sh. Requires Python 3.10 or newer.
 
 usage: prepare_chinook.py SOURCE.sqlite OUTPUT.sqlite [--manifest MANIFEST.yaml]
-       prepare_chinook.py --pin repository|revision|path|sha256
+       prepare_chinook.py --pin url|mirror|sha256|revision
 """
 
 from __future__ import annotations
@@ -28,11 +29,18 @@ import shutil
 import sqlite3
 from pathlib import Path
 
-PIN_FILE = Path(__file__).resolve().parent.parent / "fixtures" / "chinook" / "phase1-acceptance.json"
+PIN_FILE = Path(__file__).resolve().parent.parent / "fixtures" / "chinook" / "chinookdb.json"
 
 
 def pinned_database() -> dict:
-    return json.loads(PIN_FILE.read_text())["database"]
+    """The pin flattened to the names --pin accepts."""
+    pin = json.loads(PIN_FILE.read_text())
+    return {
+        "url": pin["sqlite"]["url"],
+        "mirror": pin["sqlite"]["mirrorUrl"],
+        "sha256": pin["sqlite"]["sha256"],
+        "revision": pin["upstream"]["revision"],
+    }
 
 
 def field_type(sql_type: str) -> str:
@@ -92,7 +100,7 @@ def main(source: Path, output: Path, manifest_path: Path | None) -> None:
 if __name__ == "__main__":
     args = sys.argv[1:]
     if len(args) == 2 and args[0] == "--pin":
-        if args[1] not in ("repository", "revision", "path", "sha256"):
+        if args[1] not in ("url", "mirror", "sha256", "revision"):
             raise SystemExit(__doc__)
         print(pinned_database()[args[1]])
         raise SystemExit(0)
