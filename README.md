@@ -71,7 +71,8 @@ Attribution and licences of the third-party data are in [NOTICE.md](NOTICE.md).
 | `environments/` | where each database is read from (`local` is the one the scripts use) |
 | `web/` | where a browser would read each database from: `web/web.env.json` and one catalog per database (Chinook as JSON from chinookdb.com with checksums and a mirror, geo as the inGitDB folder). It is at the root, not under `environments/`, because the released `datatug` CLI refuses an environment whose server driver is `https-json` or `ingitdb` |
 | `golden/` | the expected result of the hero query, with what it was computed from |
-| `data/` | the geo snapshot, support notes and recordsets |
+| `data/` | the geo snapshot (`data/geo`, with `data/geo/.web/`: each geo table the hero query joins as one generated file, for the browser), support notes and recordsets |
+| `ai/` | `prepared-questions.json`: the wordings (English, Russian) of each prepared question and the saved query that answers it |
 | `fixtures/` | the Chinook pin (`fixtures/chinook/chinookdb.json`) and recorded inputs the tests use |
 | `scripts/` | the hero script, the Chinook fetch and preparation, the golden comparison, the check of the `web/` files and the geo sync |
 | `tests/` | Go tests that load and run the project |
@@ -89,7 +90,7 @@ repository is unchanged.
 | Job | When | What it proves |
 |---|---|---|
 | `hero` | pull request, push | downloads `chinookdb.com/data/chinook.sqlite`, checks its SHA-256, runs the saved query with the Go tests and with the released DataTug CLI, and compares the rows with `golden/sales-per-capita.json` |
-| `web-files` | pull request, push | the files in `web/` are valid against the JSON Schema of the `https-json` catalog (taken from `datatug/datatug-apps` at a pinned commit), the catalog's checksum equals the Invoice file on the pinned mirror and its numbers equal the golden result, and every file a cold run reads exists |
+| `web-files` | pull request, push | the files in `web/` and `ai/prepared-questions.json` are valid against their JSON Schemas (taken from `datatug/datatug-apps` at a pinned commit), the catalog's checksum equals the Invoice file on the pinned mirror and its numbers equal the golden result, the one-file geo tables in `data/geo/.web` equal the records they are generated from, and every file a cold run reads exists |
 | `live-sources` ([its own workflow](.github/workflows/live-sources.yml)) | daily | the same checks against the live chinookdb.com and the mirror; a failure on the schedule opens an issue. Never part of a pull request's checks, so a third-party outage cannot block a change |
 
 ## Licence

@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "questions": [
+    {
+      "id": "sales-per-capita",
+      "query": "sales/chinook-sales-per-capita",
+      "question": {
+        "en": "Which countries buy the most music relative to their population?",
+        "ru": "Какие страны покупают больше всего музыки на душу населения?"
+      },
+      "title": {
+        "en": "Sales per million people",
+        "ru": "Продажи на миллион человек"
+      },
+      "wordings": [
+        "which countries buy the most music relative to their population",
+        "music sales per capita by country",
+        "which country buys the most music per person",
+        "top countries by music sales per capita",
+        "какие страны покупают больше всего музыки на душу населения"
+      ],
+      "followUps": ["insight"]
+    }
+  ]
+}

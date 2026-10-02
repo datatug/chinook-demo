@@ -11,9 +11,12 @@
 # paths are replaced: data/geo/README.md is hand-written and is preserved.
 # The World Bank records carry their own provenance (indicator, source_url,
 # fetched_at); geo-ingitdb Git history is the snapshot history.
+# After a refresh it regenerates data/geo/.web/<collection>.json (one file per table, for
+# the browser) with scripts/build-web-geo.py; those generated files are not vendored, so
+# --check leaves them to `scripts/build-web-geo.py --check`.
 #
 # --check stages what a refresh would write and diffs it against the committed
-# copy (README.md and .vendored-from aside), so edits to the vendored data, and a
+# copy (README.md, .vendored-from and .web aside), so edits to the vendored data, and a
 # copy that no longer matches the recorded geo-ingitdb commit, are caught. CI runs
 # it against a checkout of that recorded commit.
 set -euo pipefail
@@ -60,7 +63,7 @@ if [ "$check" = 1 ]; then
   recorded="$(sed -n 's/^commit=//p' "$dest/.vendored-from" 2>/dev/null || true)"
   [ -n "$recorded" ] || die "$dest/.vendored-from has no commit= line; run scripts/sync-geo-data.sh"
   [ "$recorded" = "$commit" ] || echo "sync-geo-data: note: vendored from $recorded, checkout is at $commit" >&2
-  if diff -r -x README.md -x .vendored-from "$staged" "$dest" >&2; then
+  if diff -r -x README.md -x .vendored-from -x .web "$staged" "$dest" >&2; then
     echo "sync-geo-data: data/geo matches geo-ingitdb at $commit"
     exit 0
   fi
@@ -74,4 +77,5 @@ cp -R "$staged"/. "$dest"/
 printf 'repository=ingitdb/geo-ingitdb\ncommit=%s\n' "$commit" > "$dest/.vendored-from"
 [ -f "$dest/README.md" ] || echo "sync-geo-data: warning: $dest/README.md is missing (it is hand-written and not generated)" >&2
 ingitdb validate --path "$dest"
+"$root/scripts/build-web-geo.py"
 echo "sync-geo-data: vendored geo-ingitdb at $commit into data/geo"
