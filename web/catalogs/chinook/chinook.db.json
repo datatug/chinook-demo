@@ -1,0 +1,14 @@
+{
+  "driver": "https-json",
+  "label": "Chinook (chinookdb.com)",
+  "homepage": "https://chinookdb.com",
+  "urlTemplate": "https://chinookdb.com/data/json/chinook.{table}.json",
+  "fallbackUrlTemplate": "https://cdn.jsdelivr.net/gh/datatug/chinookdb@0b6bb6ba22f680c9fb2fea9ec8107a8638dd8dc4/public/data/json/chinook.{table}.json",
+  "keys": { "Invoice": "InvoiceId" },
+  "sha256": { "Invoice": "88eb7faede360988e9c0f8f8d107e5093db5e712141de14d868f8947b43c373c" },
+  "upstream": {
+    "repository": "https://github.com/lerocha/chinook-database",
+    "revision": "7f67772503d71ba90f19283c38e93923addb43fa",
+    "licence": "MIT"
+  }
+}

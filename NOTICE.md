@@ -9,17 +9,20 @@ dedication; each part keeps its own licence and requires the attribution given h
 The table and column definitions in [`dbmodels/chinook`](dbmodels/chinook) describe the
 Chinook sample database, created by Luis Rocha, upstream at
 <https://github.com/lerocha/chinook-database>. The database rows are **not** in this
-repository; the scripts fetch the revision pinned in
-[`fixtures/chinook/phase1-acceptance.json`](fixtures/chinook/phase1-acceptance.json) (today
-from `datatug/chinook-database`, a fork of the upstream project) and check its SHA-256.
+repository; the scripts fetch the SQLite file from <https://chinookdb.com> and check its
+SHA-256 against [`fixtures/chinook/chinookdb.json`](fixtures/chinook/chinookdb.json), and the
+`web` environment ([`web/`](web)) names the same site's per-table JSON files, with a pinned
+mirror. The rows come from upstream revision `7f67772503d71ba90f19283c38e93923addb43fa`.
+ChinookDB.com is an independent hosted resource and is not the official upstream project.
 
 Chinook is licensed under the MIT licence. The notice below is copied from the upstream
-`LICENSE.md` at that pinned revision (`6334395117e2478a2712e083be614721341c26c9`):
+`LICENSE.md` at that revision (`7f67772503d71ba90f19283c38e93923addb43fa`), not retyped
+(trailing spaces at line ends removed):
 
 ```
 Chinook Database
 --------------------------------------
-Copyright (c) 2008-2017 Luis Rocha
+Copyright (c) 2008-2024 Luis Rocha
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 documentation files (the "Software"), to deal in the Software without restriction, including without limitation

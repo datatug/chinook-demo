@@ -31,12 +31,6 @@ type acceptanceCustomer struct {
 }
 
 type acceptanceFixture struct {
-	Database struct {
-		Repository string `json:"repository"`
-		Revision   string `json:"revision"`
-		Path       string `json:"path"`
-		SHA256     string `json:"sha256"`
-	} `json:"database"`
 	Customers struct {
 		Brazilian     acceptanceCustomer `json:"brazilian"`
 		Canadian      acceptanceCustomer `json:"canadian"`
@@ -57,6 +51,46 @@ func loadAcceptanceFixture(t *testing.T) acceptanceFixture {
 	var fixture acceptanceFixture
 	require.NoError(t, json.Unmarshal(b, &fixture))
 	return fixture
+}
+
+// chinookPin is fixtures/chinook/chinookdb.json: where the Chinook SQLite file comes from
+// (chinookdb.com, with a verified mirror) and the SHA-256 it must have.
+type chinookPin struct {
+	Source string `json:"source"`
+	SQLite struct {
+		URL       string `json:"url"`
+		MirrorURL string `json:"mirrorUrl"`
+		SHA256    string `json:"sha256"`
+		Bytes     int    `json:"bytes"`
+	} `json:"sqlite"`
+	Upstream struct {
+		Repository string `json:"repository"`
+		Revision   string `json:"revision"`
+		Licence    string `json:"licence"`
+	} `json:"upstream"`
+}
+
+func loadChinookPin(t *testing.T) chinookPin {
+	t.Helper()
+	b, err := os.ReadFile(filepath.Join(projectDir, "fixtures", "chinook", "chinookdb.json"))
+	require.NoError(t, err)
+	var pin chinookPin
+	require.NoError(t, json.Unmarshal(b, &pin))
+	return pin
+}
+
+// chinookSourcePath returns the Chinook SQLite file the pinned-Chinook tests read:
+// DATATUG_CHINOOK_DB, else the file scripts/fetch-chinook.sh leaves in .demo-data. It
+// returns "" when there is none.
+func chinookSourcePath() string {
+	if path := os.Getenv("DATATUG_CHINOOK_DB"); path != "" {
+		return path
+	}
+	fetched := filepath.Join(projectDir, ".demo-data", "chinook-source.sqlite")
+	if _, err := os.Stat(fetched); err == nil {
+		return fetched
+	}
+	return ""
 }
 
 type supportNoteFact struct {
@@ -105,10 +139,13 @@ func loadSupportNoteFacts(t *testing.T) []supportNoteFact {
 func TestPhase1AcceptanceFixtureConsistency(t *testing.T) {
 	fixture := loadAcceptanceFixture(t)
 
-	require.NotEmpty(t, fixture.Database.Repository)
-	require.Len(t, fixture.Database.Revision, 40)
-	require.NotEmpty(t, fixture.Database.Path)
-	require.Len(t, fixture.Database.SHA256, 64)
+	pin := loadChinookPin(t)
+	require.Equal(t, "https://chinookdb.com/data/chinook.sqlite", pin.SQLite.URL)
+	require.True(t, strings.HasPrefix(pin.SQLite.MirrorURL, "https://cdn.jsdelivr.net/gh/datatug/chinookdb@"), pin.SQLite.MirrorURL)
+	require.Regexp(t, `^[0-9a-f]{64}$`, pin.SQLite.SHA256)
+	require.Regexp(t, `^[0-9a-f]{40}$`, pin.Upstream.Revision)
+	require.Equal(t, "MIT", pin.Upstream.Licence)
+
 	require.Equal(t, fixture.Customers.Canadian.Country, fixture.SupportScope.Country)
 	require.NotEqual(t, fixture.Customers.Brazilian.ID, fixture.Customers.Canadian.ID)
 	require.NotEqual(t, fixture.Customers.Canadian.ID, fixture.Customers.Investigation.ID)
@@ -126,17 +163,18 @@ func TestPhase1AcceptanceFixtureConsistency(t *testing.T) {
 }
 
 // TestPinnedChinookDatabase derives the IDs and counts in the acceptance
-// fixture from the immutable SQLite file itself. DATATUG_CHINOOK_DB is an
-// explicit acceptance prerequisite; the ordinary demo-project unit suite
-// validates only the committed derived fixture when the owning database
-// repository is not checked out beside it.
+// fixture from the Chinook SQLite file itself (chinookdb.com, pinned by SHA-256 in
+// fixtures/chinook/chinookdb.json). The file is an explicit acceptance prerequisite:
+// DATATUG_CHINOOK_DB, or the copy scripts/fetch-chinook.sh leaves under .demo-data.
+// The ordinary demo-project unit suite validates only the committed derived fixture
+// when neither exists.
 func TestPinnedChinookDatabase(t *testing.T) {
-	dbPath := os.Getenv("DATATUG_CHINOOK_DB")
+	dbPath := chinookSourcePath()
 	if dbPath == "" {
 		if run := flag.Lookup("test.run"); run != nil && strings.Contains(run.Value.String(), "TestPinnedChinookDatabase") {
-			t.Fatal("DATATUG_CHINOOK_DB is required when the pinned database verification is selected explicitly")
+			t.Fatal("DATATUG_CHINOOK_DB (or scripts/fetch-chinook.sh) is required when the pinned database verification is selected explicitly")
 		}
-		t.Skip("DATATUG_CHINOOK_DB is required for pinned Chinook database verification")
+		t.Skip("DATATUG_CHINOOK_DB (or scripts/fetch-chinook.sh) is required for pinned Chinook database verification")
 	}
 	fixture := loadAcceptanceFixture(t)
 
@@ -146,7 +184,7 @@ func TestPinnedChinookDatabase(t *testing.T) {
 	_, err = io.Copy(hash, f)
 	require.NoError(t, err)
 	require.NoError(t, f.Close())
-	require.Equal(t, fixture.Database.SHA256, fmt.Sprintf("%x", hash.Sum(nil)))
+	require.Equal(t, loadChinookPin(t).SQLite.SHA256, fmt.Sprintf("%x", hash.Sum(nil)))
 
 	db, err := sql.Open("sqlite", "file:"+dbPath+"?mode=ro")
 	require.NoError(t, err)

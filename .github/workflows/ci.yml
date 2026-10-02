@@ -20,14 +20,17 @@ jobs:
     secrets:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # The hero query over the REAL pinned Chinook file. The ordinary test run above
-  # cannot see that file, so the pinned-Chinook tests skip there; this job checks
-  # out datatug/chinook-database at the revision pinned in
-  # fixtures/chinook/phase1-acceptance.json, verifies the file's SHA-256 against the same pin, and
-  # runs the tests with DATATUG_REQUIRE_CHINOOK so a missing file fails instead
-  # of skipping. The headline numbers are therefore checked on every change.
-  hero_pinned_chinook:
-    name: Hero query over pinned Chinook
+  # The hero query over the REAL Chinook file from chinookdb.com. The ordinary test run
+  # above cannot see that file, so the pinned-Chinook tests skip there; this job downloads
+  # it (scripts/fetch-chinook.sh: chinookdb.com, the pinned jsDelivr mirror when it does not
+  # answer), verifies its SHA-256 against fixtures/chinook/chinookdb.json, and runs:
+  #   1. the Go tests with DATATUG_REQUIRE_CHINOOK, so a missing file fails instead of
+  #      skipping: the saved query's rows equal golden/sales-per-capita.json;
+  #   2. scripts/run-hero-demo.sh with the RELEASED DataTug CLI (the release below, its
+  #      SHA-256 checked): the same rows again, through the program a visitor installs.
+  # Required for merging.
+  hero:
+    name: hero
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -35,41 +38,59 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # actions/checkout v6
 
-      - name: Read the Chinook pin
-        id: pin
-        run: |
-          set -euo pipefail
-          pin=fixtures/chinook/phase1-acceptance.json
-          {
-            echo "repository=$(jq -r .database.repository "$pin" | sed 's#https://github.com/##')"
-            echo "revision=$(jq -r .database.revision "$pin")"
-            echo "path=$(jq -r .database.path "$pin")"
-            echo "sha256=$(jq -r .database.sha256 "$pin")"
-          } >> "$GITHUB_OUTPUT"
-
-      - name: Checkout pinned Chinook database
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # actions/checkout v6
-        with:
-          repository: ${{ steps.pin.outputs.repository }}
-          ref: ${{ steps.pin.outputs.revision }}
-          path: chinook-database
-          persist-credentials: false
-
-      - name: Verify the Chinook file against the pin
-        run: |
-          set -euo pipefail
-          echo "${{ steps.pin.outputs.sha256 }}  chinook-database/${{ steps.pin.outputs.path }}" | sha256sum --check --strict
+      - name: Fetch Chinook from chinookdb.com and verify its SHA-256
+        run: scripts/fetch-chinook.sh
 
       - name: Install Go
         uses: actions/setup-go@v7
         with:
           go-version-file: tests/go.mod
 
-      - name: Run the pinned-Chinook tests
+      - name: Saved query through the Go engine equals the golden result
         env:
-          DATATUG_CHINOOK_DB: ${{ github.workspace }}/chinook-database/${{ steps.pin.outputs.path }}
           DATATUG_REQUIRE_CHINOOK: "1"
-        run: go -C tests test . -run 'TestPinnedChinookDatabase|TestHeroQuery_PinnedChinook' -v -count=1
+        run: go -C tests test . -run 'TestPinnedChinookDatabase|TestHeroQuery_PinnedChinook|TestGoldenResultFile' -v -count=1
+
+      # The organization only allows a fixed list of third-party actions, so the released CLI
+      # is installed from its GitHub release with the archive's SHA-256 checked.
+      - name: Install the released DataTug CLI
+        env:
+          DATATUG_VERSION: 0.52.0
+          DATATUG_SHA256: 164839fdab8439ac446fe11bcb20d6583bbe23d395ea0d99fdd28c2d37c6e389
+        run: |
+          set -euo pipefail
+          archive="datatug_${DATATUG_VERSION}_linux_amd64.tar.gz"
+          curl --fail --silent --show-error --location \
+            "https://github.com/datatug/datatug-cli/releases/download/v${DATATUG_VERSION}/${archive}" \
+            --output "${RUNNER_TEMP}/${archive}"
+          echo "${DATATUG_SHA256}  ${RUNNER_TEMP}/${archive}" | sha256sum --check --strict
+          mkdir -p "${RUNNER_TEMP}/datatug-cli"
+          tar --extract --gzip --file "${RUNNER_TEMP}/${archive}" --directory "${RUNNER_TEMP}/datatug-cli" datatug
+          echo "${RUNNER_TEMP}/datatug-cli" >> "$GITHUB_PATH"
+
+      - name: Hero script through the released CLI equals the golden result
+        run: scripts/run-hero-demo.sh
+
+  # The files a browser reads: the `web` environment and the prepared questions are valid
+  # against the JSON Schemas (fetched from datatug/datatug-apps at a pinned commit), the
+  # catalog's checksum equals the Invoice file on the pinned mirror and its numbers equal
+  # the golden result, and every file a cold demo run reads exists. The daily check of the
+  # LIVE addresses is a separate workflow (live-sources.yml): it must not make this one
+  # flaky. Required for merging.
+  web-files:
+    name: web-files
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # actions/checkout v6
+
+      - name: Install the schema validator (lock file pins it)
+        run: npm ci --prefix scripts --ignore-scripts
+
+      - name: Validate the web files and check their checksums
+        run: node scripts/check-web-files.mjs --fetch=mirror
 
   # The vendored geo data must be exactly geo-ingitdb at the commit recorded in
   # data/geo/.vendored-from, and must itself be a valid inGitDB database. Scripts
@@ -126,7 +147,7 @@ jobs:
       - name: Shellcheck the scripts
         run: shellcheck scripts/*.sh
 
-      - name: Compile the Python helper
-        run: python3 -m py_compile scripts/prepare_chinook.py
+      - name: Compile the Python helpers
+        run: python3 -m py_compile scripts/prepare_chinook.py scripts/compare-golden.py
         env:
           PYTHONDONTWRITEBYTECODE: "1"

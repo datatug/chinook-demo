@@ -1,0 +1,212 @@
+{
+  "query": "sales/chinook-sales-per-capita",
+  "question": "Which countries buy the most music relative to their population?",
+  "rounding": "totalSales and salesPerMillion are rounded to two decimals; population and populationYear are exact; rows are in result order (rank 1 first)",
+  "computedFrom": {
+    "projectCommit": "0aca65379f49b9c270514fb8b522b1bddca057ff",
+    "chinook": {
+      "sqliteSha256": "7651ba378ac2fcd0dfc3c66fb101f7a7eed3ba39a612ec642b96e20702061f15",
+      "invoiceJsonSha256": "88eb7faede360988e9c0f8f8d107e5093db5e712141de14d868f8947b43c373c",
+      "upstreamRevision": "7f67772503d71ba90f19283c38e93923addb43fa"
+    },
+    "geo": {
+      "vendoredFrom": "ingitdb/geo-ingitdb@a874fb0a95183f536cb574a5ccb45e362274eb6d"
+    },
+    "queryDtqlSha256": "0075fff4bf6dbfa70a97abc6b0f39c5728058ce7254b59a43ed3b363e2f2d2de"
+  },
+  "invoices": 412,
+  "rows": [
+    {
+      "rank": 1,
+      "country": "Ireland",
+      "totalSales": 45.62,
+      "population": 5484367,
+      "populationYear": 2025,
+      "salesPerMillion": 8.32
+    },
+    {
+      "rank": 2,
+      "country": "Czech Republic",
+      "totalSales": 90.24,
+      "population": 10886878,
+      "populationYear": 2025,
+      "salesPerMillion": 8.29
+    },
+    {
+      "rank": 3,
+      "country": "Finland",
+      "totalSales": 41.62,
+      "population": 5646436,
+      "populationYear": 2025,
+      "salesPerMillion": 7.37
+    },
+    {
+      "rank": 4,
+      "country": "Canada",
+      "totalSales": 303.96,
+      "population": 41651653,
+      "populationYear": 2025,
+      "salesPerMillion": 7.3
+    },
+    {
+      "rank": 5,
+      "country": "Portugal",
+      "totalSales": 77.24,
+      "population": 10804871,
+      "populationYear": 2025,
+      "salesPerMillion": 7.15
+    },
+    {
+      "rank": 6,
+      "country": "Norway",
+      "totalSales": 39.62,
+      "population": 5610870,
+      "populationYear": 2025,
+      "salesPerMillion": 7.06
+    },
+    {
+      "rank": 7,
+      "country": "Denmark",
+      "totalSales": 37.62,
+      "population": 6009169,
+      "populationYear": 2025,
+      "salesPerMillion": 6.26
+    },
+    {
+      "rank": 8,
+      "country": "Hungary",
+      "totalSales": 45.62,
+      "population": 9514251,
+      "populationYear": 2025,
+      "salesPerMillion": 4.79
+    },
+    {
+      "rank": 9,
+      "country": "Austria",
+      "totalSales": 42.62,
+      "population": 9208163,
+      "populationYear": 2025,
+      "salesPerMillion": 4.63
+    },
+    {
+      "rank": 10,
+      "country": "Sweden",
+      "totalSales": 38.62,
+      "population": 10596620,
+      "populationYear": 2025,
+      "salesPerMillion": 3.64
+    },
+    {
+      "rank": 11,
+      "country": "Belgium",
+      "totalSales": 37.62,
+      "population": 11941781,
+      "populationYear": 2025,
+      "salesPerMillion": 3.15
+    },
+    {
+      "rank": 12,
+      "country": "France",
+      "totalSales": 195.1,
+      "population": 68720337,
+      "populationYear": 2025,
+      "salesPerMillion": 2.84
+    },
+    {
+      "rank": 13,
+      "country": "Chile",
+      "totalSales": 46.62,
+      "population": 19859921,
+      "populationYear": 2025,
+      "salesPerMillion": 2.35
+    },
+    {
+      "rank": 14,
+      "country": "Netherlands",
+      "totalSales": 40.62,
+      "population": 18087633,
+      "populationYear": 2025,
+      "salesPerMillion": 2.25
+    },
+    {
+      "rank": 15,
+      "country": "Germany",
+      "totalSales": 156.48,
+      "population": 83491249,
+      "populationYear": 2025,
+      "salesPerMillion": 1.87
+    },
+    {
+      "rank": 16,
+      "country": "United Kingdom",
+      "totalSales": 112.86,
+      "population": 69487000,
+      "populationYear": 2025,
+      "salesPerMillion": 1.62
+    },
+    {
+      "rank": 17,
+      "country": "USA",
+      "totalSales": 523.06,
+      "population": 341784857,
+      "populationYear": 2025,
+      "salesPerMillion": 1.53
+    },
+    {
+      "rank": 18,
+      "country": "Australia",
+      "totalSales": 37.62,
+      "population": 27614411,
+      "populationYear": 2025,
+      "salesPerMillion": 1.36
+    },
+    {
+      "rank": 19,
+      "country": "Poland",
+      "totalSales": 37.62,
+      "population": 36435861,
+      "populationYear": 2025,
+      "salesPerMillion": 1.03
+    },
+    {
+      "rank": 20,
+      "country": "Brazil",
+      "totalSales": 190.1,
+      "population": 212812405,
+      "populationYear": 2025,
+      "salesPerMillion": 0.89
+    },
+    {
+      "rank": 21,
+      "country": "Argentina",
+      "totalSales": 37.62,
+      "population": 45851378,
+      "populationYear": 2025,
+      "salesPerMillion": 0.82
+    },
+    {
+      "rank": 22,
+      "country": "Spain",
+      "totalSales": 37.62,
+      "population": 49355143,
+      "populationYear": 2025,
+      "salesPerMillion": 0.76
+    },
+    {
+      "rank": 23,
+      "country": "Italy",
+      "totalSales": 37.62,
+      "population": 58915656,
+      "populationYear": 2025,
+      "salesPerMillion": 0.64
+    },
+    {
+      "rank": 24,
+      "country": "India",
+      "totalSales": 75.26,
+      "population": 1463865525,
+      "populationYear": 2025,
+      "salesPerMillion": 0.05
+    }
+  ]
+}
