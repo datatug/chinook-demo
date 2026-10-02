@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-// Checks the files a browser reads from this repository: the `web` environment and
-// (once present) the prepared questions.
+// Checks the files a browser reads from this repository: the `web` environment and the
+// prepared questions. (The one-file geo tables are checked against their records by
+// scripts/build-web-geo.py --check.)
 //
 //   node scripts/check-web-files.mjs [--fetch=none|mirror|live]
 //
@@ -112,8 +113,8 @@ for (const field of ['urlTemplate', 'fallbackUrlTemplate']) {
 }
 const tableUrl = (template, table) => template.replace('{table}', table);
 
-// ---- prepared questions (the file arrives with task G-R3) -------------------------------------
-if (existsSync(join(root, 'ai/prepared-questions.json'))) {
+// ---- prepared questions ------------------------------------------------------------------------
+{
   const questions = await validateAgainstSchema('ai/prepared-questions.json', 'prepared-questions');
   const ids = new Set();
   for (const q of questions.questions ?? []) {
@@ -134,6 +135,9 @@ const required = [
   'web/catalogs/geo/geo.db.json',
   ...tables.map((t) => `dbmodels/chinook/main/tables/${t}/main.${t}.columns.json`),
   'entities/Country/Country.entity.json',
+  'ai/prepared-questions.json',
+  'data/geo/.web/country_aliases.json',
+  'data/geo/.web/population_wb.json',
   'golden/sales-per-capita.json',
 ];
 for (const path of required) if (!existsSync(join(root, path))) fail(`missing: ${path}`);

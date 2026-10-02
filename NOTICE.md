@@ -66,6 +66,14 @@ The two collections above are vendored from
 
 Written and hand-checked for this project. No third-party content.
 
+## One-file copies (`data/geo/.web/`)
+
+`data/geo/.web/country_aliases.json` and `data/geo/.web/population_wb.json` are generated
+copies of the two collections above, each merged into one file (the records' content is
+verbatim) so a browser can read a table in one request. The attribution and the statement of
+modification for the World Bank figures above apply to `population_wb.json` as they do to
+`data/geo/population_wb`; the aliases carry no third-party content.
+
 ## Recorded HTTP responses (`fixtures/http`)
 
 Two small responses recorded from public keyless APIs so the demo works offline: country

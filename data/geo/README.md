@@ -16,14 +16,34 @@ reviewable dataset:
 Open it with
 `datatug query run --db ingitdb://<this directory> --from population_wb --no-policies`.
 
+## One file per table for the browser: `.web/`
+
+The collections above store one file per record (24 and 216 files), the layout of
+geo-ingitdb. A browser reading this project from GitHub would need a request for each, so
+[`.web/country_aliases.json`](.web/country_aliases.json) and
+[`.web/population_wb.json`](.web/population_wb.json) hold each table as one file: a JSON array of
+`{"key": <record id>, "data": <the record file's content, verbatim>}` in key order. They are
+**generated** from the records by `scripts/build-web-geo.py` (never edited by hand), carry the
+same attribution as the records they copy (below; `population_wb` is modified further by being
+merged into one file), and CI fails when they differ from the records
+(`scripts/build-web-geo.py --check`, job `web-files`; `tests/web_files_test.go`).
+
+Why generated files and not the collections stored as one file each: the DataTug CLI *can* read a
+collection stored as one file (record type `map[$record_id]map[$field_name]any`: checked with
+`datatug` 0.51.0 and 0.52.0 and `ingitdb validate`, same 24 rows and the same result), but that
+file is a keyed object, not the `{key, data}` array the browser's reader takes, and storing it that
+way would change the vendored layout, which `scripts/sync-geo-data.sh --check` holds equal to
+geo-ingitdb. The generated files keep both readers on the shape they already read.
+
 ## Provenance and refresh
 
 [`.vendored-from`](.vendored-from) records the geo-ingitdb commit this copy was taken from.
 Refresh with `scripts/sync-geo-data.sh [path-to-geo-ingitdb]`; it replaces only the managed
-files (the three collections, `.ingitdb/` and `DATA-LICENSE.md`) and leaves this README alone.
+files (the three collections, `.ingitdb/` and `DATA-LICENSE.md`), regenerates `.web/` and leaves
+this README alone.
 `scripts/sync-geo-data.sh --check [path-to-geo-ingitdb]` fails when the vendored files differ
-from that checkout; CI runs it against the recorded commit, so the copy cannot drift or be
-edited unnoticed.
+from that checkout (`.web/` aside, which `scripts/build-web-geo.py --check` covers); CI runs both,
+the first against the recorded commit, so the copy cannot drift or be edited unnoticed.
 
 ## Attribution and licence
 

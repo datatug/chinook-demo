@@ -74,7 +74,8 @@ jobs:
   # The files a browser reads: the `web` environment and the prepared questions are valid
   # against the JSON Schemas (fetched from datatug/datatug-apps at a pinned commit), the
   # catalog's checksum equals the Invoice file on the pinned mirror and its numbers equal
-  # the golden result, and every file a cold demo run reads exists. The daily check of the
+  # the golden result, the one-file geo tables (data/geo/.web) equal the records they are
+  # generated from, and every file a cold demo run reads exists. The daily check of the
   # LIVE addresses is a separate workflow (live-sources.yml): it must not make this one
   # flaky. Required for merging.
   web-files:
@@ -91,6 +92,9 @@ jobs:
 
       - name: Validate the web files and check their checksums
         run: node scripts/check-web-files.mjs --fetch=mirror
+
+      - name: One-file geo tables equal the records
+        run: python3 scripts/build-web-geo.py --check
 
   # The vendored geo data must be exactly geo-ingitdb at the commit recorded in
   # data/geo/.vendored-from, and must itself be a valid inGitDB database. Scripts
@@ -148,6 +152,6 @@ jobs:
         run: shellcheck scripts/*.sh
 
       - name: Compile the Python helpers
-        run: python3 -m py_compile scripts/prepare_chinook.py scripts/compare-golden.py
+        run: python3 -m py_compile scripts/prepare_chinook.py scripts/compare-golden.py scripts/build-web-geo.py
         env:
           PYTHONDONTWRITEBYTECODE: "1"

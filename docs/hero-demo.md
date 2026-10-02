@@ -122,6 +122,20 @@ python3 scripts/compare-golden.py .demo-data/last-result.json golden/sales-per-c
   --chinook .demo-data/chinook.sqlite --update
 ```
 
+### Prepared questions and the one-file geo tables
+
+[ai/prepared-questions.json](../ai/prepared-questions.json) says which wordings run which saved
+query: the hero question in English and Russian, five wordings (the two question texts
+normalised and three others) and the follow-up the app offers. It is validated in CI against the JSON Schema in `datatug/datatug-apps` (pinned by commit).
+
+[data/geo/.web/](../data/geo/.web) holds `country_aliases` (24 records) and `population_wb`
+(216) as one file each, generated from the per-record files by `scripts/build-web-geo.py`, so a
+browser needs two requests instead of 240. The DataTug CLI reads the per-record layout (the
+one `ingitdb` and `scripts/sync-geo-data.sh --check` keep equal to geo-ingitdb) and does not
+read `.web/`; it can also read a collection stored as one file, so this is a choice of layout,
+explained in [data/geo/README.md](../data/geo/README.md). CI fails when a generated file differs
+from its records.
+
 ### The `web` environment
 
 [web/](../web) says where a browser reads each database: `web/catalogs/chinook/chinook.db.json`
