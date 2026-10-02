@@ -26,7 +26,7 @@ func (stubReadSession) ExecuteQueryToRecordsReader(_ context.Context, _ dal.Quer
 	return nil, nil
 }
 
-// TestDemoProject1_OpaqueQueryPolicy proves demo-project-1/policies/
+// TestDemoProject1_OpaqueQueryPolicy proves policies/
 // customers.yaml grants admin - but not support - the native-SQL resource
 // kind (access.OpaqueQuery / opaqueQuery: true), a separate resource kind
 // from the structured path:/** scope admin already has (see datatug-cli PR
@@ -34,7 +34,7 @@ func (stubReadSession) ExecuteQueryToRecordsReader(_ context.Context, _ dal.Quer
 // queries, e.g. customer-purchases-by-genre, to every principal, admin
 // included). Loads the real policy set through the same loader
 // (accesspolicies.LoadDir) and dispatch (accesspolicies.Run) datatug-cli
-// itself uses, against the real SQL text of demo-project-1's
+// itself uses, against the real SQL text of the project's
 // customer-purchases-by-genre query.
 func TestDemoProject1_OpaqueQueryPolicy(t *testing.T) {
 	ctx := context.Background()
@@ -44,7 +44,7 @@ func TestDemoProject1_OpaqueQueryPolicy(t *testing.T) {
 	require.NoError(t, err, "failed to load customer-purchases-by-genre")
 	require.NotEmpty(t, query.Text)
 
-	loaded, err := accesspolicies.LoadDir("../demo-project-1/policies")
+	loaded, err := accesspolicies.LoadDir("../policies")
 	require.NoError(t, err)
 
 	sqlQuery := dal.NewTextQuery(query.Text, nil)

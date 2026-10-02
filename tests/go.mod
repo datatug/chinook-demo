@@ -1,4 +1,4 @@
-module github.com/datatug/datatug-demo-projects/tests
+module github.com/datatug/chinook-demo/tests
 
 go 1.27.0
 

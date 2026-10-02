@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Refresh, or verify, demo-project-1/data/geo from a geo-ingitdb checkout.
+# Refresh, or verify, data/geo from a geo-ingitdb checkout.
 #
 #   scripts/sync-geo-data.sh [GEO_INGITDB_DIR]           refresh the vendored copy
 #   scripts/sync-geo-data.sh --check [GEO_INGITDB_DIR]   fail when it differs from the checkout
@@ -22,7 +22,7 @@ root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 check=0
 if [ "${1:-}" = "--check" ]; then check=1; shift; fi
 geo="${1:-${GEO_INGITDB_DIR:-$root/../../ingitdb/geo-ingitdb}}"
-dest="$root/demo-project-1/data/geo"
+dest="$root/data/geo"
 
 die() { echo "sync-geo-data: $*" >&2; exit 1; }
 
@@ -61,10 +61,10 @@ if [ "$check" = 1 ]; then
   [ -n "$recorded" ] || die "$dest/.vendored-from has no commit= line; run scripts/sync-geo-data.sh"
   [ "$recorded" = "$commit" ] || echo "sync-geo-data: note: vendored from $recorded, checkout is at $commit" >&2
   if diff -r -x README.md -x .vendored-from "$staged" "$dest" >&2; then
-    echo "sync-geo-data: demo-project-1/data/geo matches geo-ingitdb at $commit"
+    echo "sync-geo-data: data/geo matches geo-ingitdb at $commit"
     exit 0
   fi
-  die "demo-project-1/data/geo differs from geo-ingitdb at $commit (see the diff above); run scripts/sync-geo-data.sh"
+  die "data/geo differs from geo-ingitdb at $commit (see the diff above); run scripts/sync-geo-data.sh"
 fi
 
 mkdir -p "$dest"
@@ -74,4 +74,4 @@ cp -R "$staged"/. "$dest"/
 printf 'repository=ingitdb/geo-ingitdb\ncommit=%s\n' "$commit" > "$dest/.vendored-from"
 [ -f "$dest/README.md" ] || echo "sync-geo-data: warning: $dest/README.md is missing (it is hand-written and not generated)" >&2
 ingitdb validate --path "$dest"
-echo "sync-geo-data: vendored geo-ingitdb at $commit into demo-project-1/data/geo"
+echo "sync-geo-data: vendored geo-ingitdb at $commit into data/geo"

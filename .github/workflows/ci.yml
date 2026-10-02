@@ -1,4 +1,4 @@
-name: Go
+name: CI
 
 on:
   push:
@@ -10,7 +10,7 @@ jobs:
   # Vet, lint and test the demo project's Go tests (module in tests/) with the
   # fleet's shared workflow. This is a demo-project repository, not a versioned
   # library, so releases are not tagged from here.
-  ci:
+  test:
     permissions:
       contents: write # declared by the reusable workflow's (disabled) tagging job
     uses: strongo/cicd/.github/workflows/workflow.yml@v1.21.0
@@ -23,7 +23,7 @@ jobs:
   # The hero query over the REAL pinned Chinook file. The ordinary test run above
   # cannot see that file, so the pinned-Chinook tests skip there; this job checks
   # out datatug/chinook-database at the revision pinned in
-  # phase1-acceptance.json, verifies the file's SHA-256 against the same pin, and
+  # fixtures/chinook/phase1-acceptance.json, verifies the file's SHA-256 against the same pin, and
   # runs the tests with DATATUG_REQUIRE_CHINOOK so a missing file fails instead
   # of skipping. The headline numbers are therefore checked on every change.
   hero_pinned_chinook:
@@ -39,7 +39,7 @@ jobs:
         id: pin
         run: |
           set -euo pipefail
-          pin=demo-project-1/fixtures/chinook/phase1-acceptance.json
+          pin=fixtures/chinook/phase1-acceptance.json
           {
             echo "repository=$(jq -r .database.repository "$pin" | sed 's#https://github.com/##')"
             echo "revision=$(jq -r .database.revision "$pin")"
@@ -87,7 +87,7 @@ jobs:
         id: vendored
         run: |
           set -euo pipefail
-          echo "commit=$(sed -n 's/^commit=//p' demo-project-1/data/geo/.vendored-from)" >> "$GITHUB_OUTPUT"
+          echo "commit=$(sed -n 's/^commit=//p' data/geo/.vendored-from)" >> "$GITHUB_OUTPUT"
 
       - name: Checkout geo-ingitdb at that commit
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # actions/checkout v6
@@ -121,7 +121,7 @@ jobs:
           echo "${RUNNER_TEMP}/bin" >> "$GITHUB_PATH"
 
       - name: Validate the vendored inGitDB database
-        run: ingitdb validate --path demo-project-1/data/geo
+        run: ingitdb validate --path data/geo
 
       - name: Shellcheck the scripts
         run: shellcheck scripts/*.sh

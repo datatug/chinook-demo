@@ -7,7 +7,7 @@ Chinook tables do not have. This copies the source file, adds a stable text
 can emit the strict OpenVaultDB manifest for the result. The logic mirrors
 openvaultdb/cloud/server/prepare_fixture.py.
 
-The one pin is demo-project-1/fixtures/chinook/phase1-acceptance.json (repository,
+The one pin is fixtures/chinook/phase1-acceptance.json (repository,
 revision, path and SHA-256 of the database file); the source must match its
 SHA-256. Requires Python 3.10 or newer.
 
@@ -28,7 +28,7 @@ import shutil
 import sqlite3
 from pathlib import Path
 
-PIN_FILE = Path(__file__).resolve().parent.parent / "demo-project-1" / "fixtures" / "chinook" / "phase1-acceptance.json"
+PIN_FILE = Path(__file__).resolve().parent.parent / "fixtures" / "chinook" / "phase1-acceptance.json"
 
 
 def pinned_database() -> dict:

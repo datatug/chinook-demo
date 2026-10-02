@@ -21,7 +21,7 @@ import (
 // population?" - is the saved DTQL query sales/chinook-sales-per-capita. It
 // joins three sources (Chinook Invoice -> geo country_aliases -> geo
 // population_wb) with no AI involved, so its result is a pure function of the
-// committed geo snapshot (demo-project-1/data/geo) and the pinned Chinook file.
+// committed geo snapshot (data/geo) and the pinned Chinook file.
 //
 // World Bank SP.POP.TOTL, latest year per country, fetched 2026-10-02
 // (source last updated 2026-07-13). Re-pin these values when data/geo is

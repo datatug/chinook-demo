@@ -1,7 +1,7 @@
-// Package tests exercises datatug-demo-projects/demo-project-1 against a
+// Package tests exercises the datatug/chinook-demo project (the repository root) against a
 // real, tagged datatug-core: it proves the project loads and validates, that
-// the declared field mappings plan task 4 (see ~/briefs/s3b-demo-mappings.md)
-// listed are actually present, and that datatug-core's pkg/semantic resolver
+// the declared field mappings (entities' NamePatterns) are actually present,
+// and that datatug-core's pkg/semantic resolver
 // and applicability logic (PRs #303/#304) produce the results the
 // core-investigation-loop feature's journeys describe for this project.
 package tests
@@ -17,11 +17,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const projectDir = "../demo-project-1"
+// The project is the repository root; the tests live one level below it.
+const projectDir = ".."
 
 func newStore(t *testing.T) datatug.ProjectStore {
 	t.Helper()
-	return filestore.NewProjectStore("demo-project-1", projectDir)
+	return filestore.NewProjectStore("datatug-demo-project", projectDir)
 }
 
 func fieldByID(t *testing.T, entity *datatug.Entity, fieldID string) *datatug.EntityField {
@@ -52,9 +53,9 @@ func loadQueries(t *testing.T, store datatug.ProjectStore, ids ...string) datatu
 	return queries
 }
 
-// TestDemoProject1_Validate loads demo-project-1 through the real
+// TestDemoProject1_Validate loads the project through the real
 // filestore.LoadProject (datatug-core v0.20.0/#305 fixed entities loading
-// from demo-project-1's per-entity directories; v0.21.0/#306 fixed the same
+// from the project's per-entity directories; v0.21.0/#306 fixed the same
 // bug class for boards and DB models, v0.22.0 makes LoadProject load each
 // environment's own "<id>.env.json" and fixes #307 so a file-based sqlite3
 // ServerRef with an empty host validates, and Project.Validate() has
@@ -90,7 +91,7 @@ func TestDemoProject1_Validate(t *testing.T) {
 	assert.NoError(t, project.Validate())
 }
 
-// TestDemoProject1_Environments loads every demo-project-1 environment
+// TestDemoProject1_Environments loads every environment of the project
 // individually and asserts its dbServers.sqlite3 ServerRef is valid (S42's
 // fix for #307: environments/*/*.env.json declared "host":"localhost" for a
 // sqlite3 server, which ServerRef.Validate() correctly rejects - sqlite3 is
@@ -169,7 +170,7 @@ func TestDemoProject1_Environments(t *testing.T) {
 // that Project.Validate() passes on the project exactly as LoadProject
 // returned it, with no query-loading workaround at all. None of the 5 real
 // queries currently declare Targets (confirmed by direct inspection of
-// demo-project-1/queries/**/*.query.json) - the empty-credential path is
+// queries/**/*.query.json) - the empty-credential path is
 // exercised separately, by construction, in datatug-core's own fixture test.
 func TestDemoProject1_QueriesLoad(t *testing.T) {
 	store := newStore(t)
@@ -239,7 +240,7 @@ func TestDemoProject1_DeclaredMappings(t *testing.T) {
 }
 
 // TestDemoProject1_ResolveChinookCustomerColumns runs semantic.Resolve over a
-// hard-coded Chinook Customer column list, per s3b-demo-mappings.md item 3.
+// hard-coded Chinook Customer column list.
 func TestDemoProject1_ResolveChinookCustomerColumns(t *testing.T) {
 	store := newStore(t)
 	entities, err := store.LoadEntities(context.Background())
@@ -274,7 +275,7 @@ func TestDemoProject1_ResolveChinookCustomerColumns(t *testing.T) {
 }
 
 // TestDemoProject1_ApplicableQueries runs semantic.Applicable with
-// Customer.ID=5, per s3b-demo-mappings.md item 3.
+// Customer.ID=5.
 func TestDemoProject1_ApplicableQueries(t *testing.T) {
 	store := newStore(t)
 	queries := loadQueries(t, store, "customers/customer-invoices", "customers/customer-purchases-by-genre", "invoices/invoice-lines")

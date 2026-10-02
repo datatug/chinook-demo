@@ -19,13 +19,13 @@
 #
 # Steps:
 #   1. Checks the tool versions and finds the Chinook file pinned in
-#      demo-project-1/fixtures/chinook/phase1-acceptance.json (repository, revision
+#      fixtures/chinook/phase1-acceptance.json (repository, revision
 #      and SHA-256 all come from that one file), cloning that exact revision under
-#      demo-project-1/.demo-data when no local copy is given.
-#   2. Derives demo-project-1/.demo-data/chinook.sqlite from it (adds the `id`
+#      .demo-data when no local copy is given.
+#   2. Derives .demo-data/chinook.sqlite from it (adds the `id`
 #      column OVDB's SQLite adapter needs).
 #   3. Starts ONE ovdb server with the chinook and geo manifests from
-#      demo-project-1/fixtures/ovdb on the port in federation.ovdbBaseUrl (50501).
+#      fixtures/ovdb on the port in federation.ovdbBaseUrl (50501).
 #      If that port is taken it says so and serves on another free port instead.
 #   4. Checks that the server answers for both databases.
 #   5. Runs the saved query with the DataTug CLI (--format json).
@@ -37,7 +37,7 @@
 # Environment:
 #   CHINOOK_SQLITE    the pinned Chinook_Sqlite.sqlite (default: ../chinook-database
 #                     beside this repository, else the pinned revision is fetched
-#                     under demo-project-1/.demo-data); its SHA-256 is verified
+#                     under .demo-data); its SHA-256 is verified
 #   OVDB_PORT         serve OVDB on exactly this port, no fallback
 #   DATATUG, OVDB     binaries (default: from PATH)
 # Needs: bash, python3 (3.10+), curl, datatug >= 0.51.0, ovdb >= 0.19.0 (the
@@ -45,7 +45,7 @@
 set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-project="$root/demo-project-1"
+project="$root"
 data="$project/.demo-data"
 datatug="${DATATUG:-datatug}"
 ovdb="${OVDB:-ovdb}"
@@ -168,7 +168,7 @@ curl -fsS "$base/v1/databases/chinook/records/Invoice/1" >/dev/null
 
 # 4. The saved query, through the DataTug CLI (reads the catalogs directly).
 result="$data/last-result.json"
-(cd "$root" && "$datatug" query run --project demo-project-1 --query sales/chinook-sales-per-capita \
+(cd "$root" && "$datatug" query run --project "$project" --query sales/chinook-sales-per-capita \
   --env local --as boss --role admin --format json >"$result")
 
 # 5. Report. Totals are floating point (Chinook stores Total as REAL), so the table rounds them.
