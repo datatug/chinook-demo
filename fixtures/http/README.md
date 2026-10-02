@@ -12,10 +12,8 @@ Fetched 2026-09-09.
 
 ## Note: REST Countries substitution
 
-The plan's original choice for the "country facts" source was REST Countries
-(`https://restcountries.com/v3.1/name/{name}`) — the lead's concrete pick under the
-founder's HTTP-source ruling, not the ruling itself (see
-`spec/features/core-investigation-loop/README.md` assumption A1 in the `datatug` hub).
+The original choice for the "country facts" source was REST Countries
+(`https://restcountries.com/v3.1/name/{name}`).
 As of this fetch, every route under `restcountries.com` (v3.1 and v5 alike) 301-redirects
 to a static "This API version has been deprecated" notice — the service is no longer
 usable without registering for a different product. `queries/reference/country-facts.query.http`
@@ -23,6 +21,6 @@ therefore points at `countriesnow.space`'s keyless `GET /api/v0.1/countries/curr
 endpoint instead, which is common/understandable in the same way and, conveniently, already
 returns the ISO currency code the `currency-rate` query needs next.
 
-`currency-rate.query.http` keeps the plan's Frankfurter choice but follows its 2026
+`currency-rate.query.http` keeps the original Frankfurter choice but follows its 2026
 domain move from `api.frankfurter.app` (still 301s, may not forever) to
 `api.frankfurter.dev`.
