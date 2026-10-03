@@ -1,0 +1,54 @@
+{
+  "id": "chinook-country-values",
+  "title": "Chinook country names to ISO 3166-1 alpha-2 codes",
+  "type": "value-mapping",
+  "concept": "meaning://github.com/meaninggraph/core/country?ref=cb97dbcd9e951b00e7d46cb2e0c4e120c24c8db7",
+  "codeSystem": {"name": "ISO 3166-1 alpha-2", "key": "alpha2", "case": "upper"},
+  "valueType": "string",
+  "match": "labels",
+  "covers": [
+    {"source": "chinook", "collection": "Customer", "column": "Country"},
+    {"source": "chinook", "collection": "Invoice", "column": "BillingCountry"},
+    {"source": "chinook", "collection": "Employee", "column": "Country"}
+  ],
+  "columns": [
+    {"name": "value", "type": "string"},
+    {"name": "code", "type": "string"},
+    {"name": "concept", "type": "string"}
+  ],
+  "generated": {
+    "by": "node scripts/build-country-mapping.mjs",
+    "note": "Generated; never edit by hand. Regenerate with the command in \"by\"; CI fails when this file differs from what it gives.",
+    "from": [
+      {"repository": "github.com/meaninggraph/core", "ref": "cb97dbcd9e951b00e7d46cb2e0c4e120c24c8db7", "file": "geo.meaning.yaml", "licence": "CC0-1.0"},
+      {"dataset": "chinook", "file": "chinook.sqlite", "sha256": "7651ba378ac2fcd0dfc3c66fb101f7a7eed3ba39a612ec642b96e20702061f15", "upstream": "https://github.com/lerocha/chinook-database@7f67772503d71ba90f19283c38e93923addb43fa"}
+    ]
+  },
+  "licence": "CC0-1.0",
+  "rows": [
+    {"value": "Argentina", "code": "AR", "concept": "meaning://github.com/meaninggraph/core/country?ref=cb97dbcd9e951b00e7d46cb2e0c4e120c24c8db7"},
+    {"value": "Australia", "code": "AU", "concept": "meaning://github.com/meaninggraph/core/country?ref=cb97dbcd9e951b00e7d46cb2e0c4e120c24c8db7"},
+    {"value": "Austria", "code": "AT", "concept": "meaning://github.com/meaninggraph/core/country?ref=cb97dbcd9e951b00e7d46cb2e0c4e120c24c8db7"},
+    {"value": "Belgium", "code": "BE", "concept": "meaning://github.com/meaninggraph/core/country?ref=cb97dbcd9e951b00e7d46cb2e0c4e120c24c8db7"},
+    {"value": "Brazil", "code": "BR", "concept": "meaning://github.com/meaninggraph/core/country?ref=cb97dbcd9e951b00e7d46cb2e0c4e120c24c8db7"},
+    {"value": "Canada", "code": "CA", "concept": "meaning://github.com/meaninggraph/core/country?ref=cb97dbcd9e951b00e7d46cb2e0c4e120c24c8db7"},
+    {"value": "Chile", "code": "CL", "concept": "meaning://github.com/meaninggraph/core/country?ref=cb97dbcd9e951b00e7d46cb2e0c4e120c24c8db7"},
+    {"value": "Czech Republic", "code": "CZ", "concept": "meaning://github.com/meaninggraph/core/country?ref=cb97dbcd9e951b00e7d46cb2e0c4e120c24c8db7"},
+    {"value": "Denmark", "code": "DK", "concept": "meaning://github.com/meaninggraph/core/country?ref=cb97dbcd9e951b00e7d46cb2e0c4e120c24c8db7"},
+    {"value": "Finland", "code": "FI", "concept": "meaning://github.com/meaninggraph/core/country?ref=cb97dbcd9e951b00e7d46cb2e0c4e120c24c8db7"},
+    {"value": "France", "code": "FR", "concept": "meaning://github.com/meaninggraph/core/country?ref=cb97dbcd9e951b00e7d46cb2e0c4e120c24c8db7"},
+    {"value": "Germany", "code": "DE", "concept": "meaning://github.com/meaninggraph/core/country?ref=cb97dbcd9e951b00e7d46cb2e0c4e120c24c8db7"},
+    {"value": "Hungary", "code": "HU", "concept": "meaning://github.com/meaninggraph/core/country?ref=cb97dbcd9e951b00e7d46cb2e0c4e120c24c8db7"},
+    {"value": "India", "code": "IN", "concept": "meaning://github.com/meaninggraph/core/country?ref=cb97dbcd9e951b00e7d46cb2e0c4e120c24c8db7"},
+    {"value": "Ireland", "code": "IE", "concept": "meaning://github.com/meaninggraph/core/country?ref=cb97dbcd9e951b00e7d46cb2e0c4e120c24c8db7"},
+    {"value": "Italy", "code": "IT", "concept": "meaning://github.com/meaninggraph/core/country?ref=cb97dbcd9e951b00e7d46cb2e0c4e120c24c8db7"},
+    {"value": "Netherlands", "code": "NL", "concept": "meaning://github.com/meaninggraph/core/country?ref=cb97dbcd9e951b00e7d46cb2e0c4e120c24c8db7"},
+    {"value": "Norway", "code": "NO", "concept": "meaning://github.com/meaninggraph/core/country?ref=cb97dbcd9e951b00e7d46cb2e0c4e120c24c8db7"},
+    {"value": "Poland", "code": "PL", "concept": "meaning://github.com/meaninggraph/core/country?ref=cb97dbcd9e951b00e7d46cb2e0c4e120c24c8db7"},
+    {"value": "Portugal", "code": "PT", "concept": "meaning://github.com/meaninggraph/core/country?ref=cb97dbcd9e951b00e7d46cb2e0c4e120c24c8db7"},
+    {"value": "Spain", "code": "ES", "concept": "meaning://github.com/meaninggraph/core/country?ref=cb97dbcd9e951b00e7d46cb2e0c4e120c24c8db7"},
+    {"value": "Sweden", "code": "SE", "concept": "meaning://github.com/meaninggraph/core/country?ref=cb97dbcd9e951b00e7d46cb2e0c4e120c24c8db7"},
+    {"value": "USA", "code": "US", "concept": "meaning://github.com/meaninggraph/core/country?ref=cb97dbcd9e951b00e7d46cb2e0c4e120c24c8db7"},
+    {"value": "United Kingdom", "code": "GB", "concept": "meaning://github.com/meaninggraph/core/country?ref=cb97dbcd9e951b00e7d46cb2e0c4e120c24c8db7"}
+  ]
+}

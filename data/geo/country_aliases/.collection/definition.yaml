@@ -3,8 +3,13 @@ titles:
 # Spellings that other systems use for a country, mapped to the countries
 # record they mean. One record per file under $records/, keyed by the slug of
 # the alias. `alias` holds the exact text as the source system spells it, so it
-# can be used as a join key; `source` records where it came from and how it was
-# matched (provenance, not inference).
+# can be used as a join key; `source` says where the record came from.
+#
+# GENERATED, never edited by hand: the records come from the value mapping
+# mappings/chinook.country-values.json (Chinook's own country values mapped to
+# the country concept of github.com/meaninggraph/core at a pinned commit) by
+# scripts/build-country-mapping.mjs, and CI fails when they differ. This
+# collection is the project's own: scripts/sync-geo-data.sh does not vendor it.
 record_file:
   name: "{key}.json"
   type: "map[string]any"

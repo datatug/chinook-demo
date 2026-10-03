@@ -1,8 +1,8 @@
 # Geo reference data (vendored from geo-ingitdb)
 
-Three collections copied from [ingitdb/geo-ingitdb](https://github.com/ingitdb/geo-ingitdb)
+Two collections copied from [ingitdb/geo-ingitdb](https://github.com/ingitdb/geo-ingitdb)
 so the demo project is self-contained and its saved queries have a pinned,
-reviewable dataset:
+reviewable dataset, and a third that this project generates:
 
 - **countries** (252) - ISO 3166-1 codes and names.
 - **population_wb** (216) - latest World Bank `SP.POP.TOTL` observation per country. Each record
@@ -11,7 +11,12 @@ reviewable dataset:
   drops them; the list is in the
   [geo-ingitdb README](https://github.com/ingitdb/geo-ingitdb#world-bank-population).
 - **country_aliases** (24) - the `Invoice.BillingCountry` spellings used by Chinook mapped to a
-  `countries` record, with `source` provenance.
+  `countries` record, with `source` provenance. **Not vendored: generated** from the value mapping
+  [`../../mappings/chinook.country-values.json`](../../mappings/chinook.country-values.json), which maps
+  Chinook's own country values to the countries of
+  [`meaninggraph/core`](https://github.com/meaninggraph/core) at a pinned commit, by
+  `scripts/build-country-mapping.mjs`; never edited by hand, and CI fails when the records differ from
+  what the mapping gives (see "Country codes" in the root README).
 
 Open it with
 `datatug query run --db ingitdb://<this directory> --from population_wb --no-policies`.
@@ -39,8 +44,8 @@ geo-ingitdb. The generated files keep both readers on the shape they already rea
 
 [`.vendored-from`](.vendored-from) records the geo-ingitdb commit this copy was taken from.
 Refresh with `scripts/sync-geo-data.sh [path-to-geo-ingitdb]`; it replaces only the managed
-files (the three collections, `.ingitdb/` and `DATA-LICENSE.md`), regenerates `.web/` and leaves
-this README alone.
+files (the two vendored collections, `.ingitdb/` and `DATA-LICENSE.md`), regenerates `.web/` and leaves
+this README and `country_aliases` alone.
 `scripts/sync-geo-data.sh --check [path-to-geo-ingitdb]` fails when the vendored files differ
 from that checkout (`.web/` aside, which `scripts/build-web-geo.py --check` covers); CI runs both,
 the first against the recorded commit, so the copy cannot drift or be edited unnoticed.
@@ -63,6 +68,9 @@ including what was changed, is in [DATA-LICENSE.md](DATA-LICENSE.md) (vendored f
   (<https://download.geonames.org/export/dump/>, `countryInfo.txt`), licensed under
   [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Modified: re-keyed by lowercase
   ISO 3166-1 alpha-2 code with renamed columns and stored as one JSON file per country.
-- **`country_aliases`** is hand-checked mapping data with no third-party content.
+- **`country_aliases`** is generated from `mappings/chinook.country-values.json`: Chinook's country
+  names, ISO 3166-1 alpha-2 codes and the address of a
+  [`meaninggraph/core`](https://github.com/meaninggraph/core) concept (CC0-1.0), with no third-party
+  content beyond that.
 
 Neither the World Bank nor GeoNames endorses this project or the changes made to their data.

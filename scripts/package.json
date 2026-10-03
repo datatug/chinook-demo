@@ -1,9 +1,10 @@
 {
   "name": "chinook-demo-scripts",
   "private": true,
-  "description": "Dependencies of scripts/check-web-files.mjs only (a JSON Schema validator). Install with: npm ci --prefix scripts",
+  "description": "Dependencies of scripts/check-web-files.mjs (a JSON Schema validator) and scripts/build-country-mapping.mjs (a YAML parser). Install with: npm ci --prefix scripts",
   "type": "module",
   "dependencies": {
-    "ajv": "8.20.0"
+    "ajv": "8.20.0",
+    "yaml": "2.9.1"
   }
 }

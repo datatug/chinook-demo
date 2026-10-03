@@ -151,6 +151,24 @@ jobs:
       - name: Shellcheck the scripts
         run: shellcheck scripts/*.sh
 
+      # data/geo/country_aliases is not vendored: it is generated, with
+      # mappings/chinook.country-values.json, from the distinct country values of the pinned
+      # Chinook file and the country concept of github.com/meaninggraph/core at the commit the
+      # mapping pins. The generator reads the Chinook file with node:sqlite (Node 22.13 or newer).
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install the YAML parser (lock file pins it)
+        run: npm ci --prefix scripts --ignore-scripts
+
+      - name: Country mapping generator tests
+        run: node --test scripts/test-country-mapping.mjs
+
+      - name: Country mapping and aliases equal what Chinook and meaninggraph/core give
+        run: node scripts/build-country-mapping.mjs --check
+
       - name: Compile the Python helpers
         run: python3 -m py_compile scripts/prepare_chinook.py scripts/compare-golden.py scripts/build-web-geo.py
         env:

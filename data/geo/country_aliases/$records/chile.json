@@ -1,5 +1,5 @@
 {
   "alias": "Chile",
   "country": "cl",
-  "source": "chinook-database Invoice.BillingCountry; exact match on countries.names.en"
+  "source": "generated from mappings/chinook.country-values.json (Customer.Country, Invoice.BillingCountry, Employee.Country mapped to github.com/meaninggraph/core country at cb97dbc); not hand-edited"
 }
