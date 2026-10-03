@@ -156,7 +156,7 @@ jobs:
       # Chinook file and the country concept of github.com/meaninggraph/core at the commit the
       # mapping pins. The generator reads the Chinook file with node:sqlite (Node 22.13 or newer).
       - name: Install Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 24
 
