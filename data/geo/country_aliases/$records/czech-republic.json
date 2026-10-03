@@ -1,5 +1,5 @@
 {
   "alias": "Czech Republic",
   "country": "cz",
-  "source": "chinook-database Invoice.BillingCountry; manual match: Chinook uses the former short name; countries.names.en is 'Czechia'"
+  "source": "generated from mappings/chinook.country-values.json (Customer.Country, Invoice.BillingCountry, Employee.Country mapped to github.com/meaninggraph/core country at cb97dbc); not hand-edited"
 }

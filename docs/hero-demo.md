@@ -161,9 +161,12 @@ and checks the checksums; see the CI table in the [README](../README.md).
 - **Why an alias table.** Chinook spells countries by name, some differently from
   GeoNames ("USA", "Czech Republic", "Netherlands"). `country_aliases` maps each of
   the 24 Chinook spellings to a country, with `source` provenance; it is data, not
-  repeated AI inference. The `Country` entity maps `Name` to `Invoice.BillingCountry`
+  repeated AI inference. It is generated from
+  [mappings/chinook.country-values.json](../mappings/chinook.country-values.json), which
+  maps each Chinook value to a country of `meaninggraph/core` at a pinned commit
+  (`scripts/build-country-mapping.mjs`; see "Country codes" in the README). The `Country` entity maps `Name` to `Invoice.BillingCountry`
   and `country_aliases.alias`, and has `alpha2`/`alpha3` mapped to the `geo` data.
-- **Data and attribution.** [data/geo](../data/geo) vendors three collections of
+- **Data and attribution.** [data/geo](../data/geo) vendors two collections of
   [ingitdb/geo-ingitdb](https://github.com/ingitdb/geo-ingitdb) at the commit recorded
   in `data/geo/.vendored-from`; refresh with `scripts/sync-geo-data.sh`, which keeps the
   hand-written [data/geo/README.md](../data/geo/README.md) (the World Bank and GeoNames

@@ -4,9 +4,9 @@
 #   scripts/sync-geo-data.sh [GEO_INGITDB_DIR]           refresh the vendored copy
 #   scripts/sync-geo-data.sh --check [GEO_INGITDB_DIR]   fail when it differs from the checkout
 #
-# Vendors the three collections the hero query needs (countries, population_wb,
-# country_aliases), a root-collections file listing only them, and geo-ingitdb's
-# DATA-LICENSE.md (the World Bank and GeoNames attribution, CC BY 4.0), and
+# Vendors the two collections the hero query takes from geo-ingitdb (countries,
+# population_wb), a root-collections file listing them and the project's own
+# country_aliases, and geo-ingitdb's DATA-LICENSE.md (the World Bank and GeoNames attribution, CC BY 4.0), and
 # records the geo-ingitdb commit in data/geo/.vendored-from. Only those managed
 # paths are replaced: data/geo/README.md is hand-written and is preserved.
 # The World Bank records carry their own provenance (indicator, source_url,
@@ -14,9 +14,12 @@
 # After a refresh it regenerates data/geo/.web/<collection>.json (one file per table, for
 # the browser) with scripts/build-web-geo.py; those generated files are not vendored, so
 # --check leaves them to `scripts/build-web-geo.py --check`.
+# country_aliases is NOT vendored: its records are generated from the country value mapping
+# (scripts/build-country-mapping.mjs, mappings/chinook.country-values.json), so a refresh
+# neither replaces nor compares them, and the root-collections file still lists the collection.
 #
 # --check stages what a refresh would write and diffs it against the committed
-# copy (README.md, .vendored-from and .web aside), so edits to the vendored data, and a
+# copy (README.md, .vendored-from, .web and country_aliases aside), so edits to the vendored data, and a
 # copy that no longer matches the recorded geo-ingitdb commit, are caught. CI runs
 # it against a checkout of that recorded commit.
 set -euo pipefail
@@ -29,7 +32,8 @@ dest="$root/data/geo"
 
 die() { echo "sync-geo-data: $*" >&2; exit 1; }
 
-collections=(countries population_wb country_aliases)
+collections=(countries population_wb)
+own_collections=(country_aliases) # in the project's own database, not copied from geo-ingitdb
 for c in "${collections[@]}"; do
   [ -d "$geo/$c/\$records" ] || die "$geo/$c/\$records not found (pass the geo-ingitdb checkout)"
 done
@@ -52,6 +56,7 @@ stage() {
     cp -R "$geo/$c/\$records" "$out/$c/\$records"
     echo "$c: $c" >> "$out/.ingitdb/root-collections.yaml"
   done
+  for c in "${own_collections[@]}"; do echo "$c: $c" >> "$out/.ingitdb/root-collections.yaml"; done
   cp "$geo/DATA-LICENSE.md" "$out/DATA-LICENSE.md"
 }
 
@@ -63,7 +68,7 @@ if [ "$check" = 1 ]; then
   recorded="$(sed -n 's/^commit=//p' "$dest/.vendored-from" 2>/dev/null || true)"
   [ -n "$recorded" ] || die "$dest/.vendored-from has no commit= line; run scripts/sync-geo-data.sh"
   [ "$recorded" = "$commit" ] || echo "sync-geo-data: note: vendored from $recorded, checkout is at $commit" >&2
-  if diff -r -x README.md -x .vendored-from -x .web "$staged" "$dest" >&2; then
+  if diff -r -x README.md -x .vendored-from -x .web -x country_aliases "$staged" "$dest" >&2; then
     echo "sync-geo-data: data/geo matches geo-ingitdb at $commit"
     exit 0
   fi

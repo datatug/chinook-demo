@@ -286,7 +286,8 @@ func TestGeoSnapshotPinned(t *testing.T) {
 			assert.Equal(t, want.Key, found["country"], name)
 			assert.NotEmpty(t, found["source"], name)
 		}
-		// Spellings that differ from the GeoNames English name are manual matches.
+		// Spellings that differ from the GeoNames English name ("Czech Republic", the Netherlands)
+		// are matched through the aliases of github.com/meaninggraph/core's country concept.
 		assert.Equal(t, "cz", rows["czech-republic"]["country"])
 		assert.Equal(t, "nl", rows["netherlands"]["country"])
 	})
