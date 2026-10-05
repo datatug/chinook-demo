@@ -25,7 +25,7 @@ That address is the plan, not a working page today: the web app does not open pr
 from it yet, and nothing in this repository claims a live web demo. When it ships it will
 read the project files straight from this repository.
 
-**With the CLI.** Needs the [`datatug` CLI](https://github.com/datatug/datatug-cli) (0.51.0 or newer),
+**With the CLI.** Needs the [`datatug` CLI](https://github.com/datatug/datatug-cli) (0.55.0 or newer),
 `bash`, `python3` (3.10 or newer) and `curl`.
 
 ```sh
@@ -70,8 +70,8 @@ Attribution and licences of the third-party data are in [NOTICE.md](NOTICE.md).
 | `queries/` | saved queries, including `sales/chinook-sales-per-capita` |
 | `entities/`, `dbmodels/`, `boards/`, `policies/`, `recordsets/`, `datasources/` | the project's definitions |
 | `mappings/` | value mappings from a dataset's own values to universal concepts: `chinook.country-values.json` maps Chinook's country names to ISO 3166-1 alpha-2 codes (generated; see [Country codes](#country-codes)) |
-| `environments/` | where each database is read from (`local` is the one the scripts use) |
-| `web/` | where a browser would read each database from: `web/web.env.json` and one catalog per database (Chinook as JSON from chinookdb.com with checksums and a mirror, geo as the inGitDB folder). It is at the root, not under `environments/`, because the released `datatug` CLI refuses an environment whose server driver is `https-json` or `ingitdb` |
+| `environments/` | where each database is read from (`local` is the one the scripts use). The local environment also declares the hypothetical affiliations JSON source for the normal project catalog picker. |
+| `web/` | the older browser hero-query environment: `web/web.env.json` and one catalog per database (Chinook as JSON from chinookdb.com with checksums and a mirror, geo as the inGitDB folder). It remains separate from the project's listed environments. |
 | `golden/` | the expected result of the hero query, with what it was computed from |
 | `data/` | the geo snapshot (`data/geo`, with `data/geo/.web/`: each geo table the hero query joins as one generated file, for the browser), support notes and recordsets |
 | `ai/` | `prepared-questions.json`: the wordings (English, Russian) of each prepared question and the saved query that answers it |
@@ -79,6 +79,10 @@ Attribution and licences of the third-party data are in [NOTICE.md](NOTICE.md).
 | `scripts/` | the hero script, the Chinook fetch and preparation, the golden comparison, the check of the `web/` files, the geo sync and the country mapping generator |
 | `tests/` | Go tests that load and run the project |
 | `.github/workflows/` | CI: `hero` and `web-files` on every pull request, `live-sources` daily (see below) |
+
+The [`affiliations` catalog](environments/local/catalogs/affiliations/affiliations.db.json)
+describes a pinned, hypothetical public user source. Its table and field mapping does not
+admit a public lookup target or make the saved hero query use these rows.
 
 ## Country codes
 

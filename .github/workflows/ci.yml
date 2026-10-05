@@ -55,8 +55,8 @@ jobs:
       # is installed from its GitHub release with the archive's SHA-256 checked.
       - name: Install the released DataTug CLI
         env:
-          DATATUG_VERSION: 0.52.0
-          DATATUG_SHA256: 164839fdab8439ac446fe11bcb20d6583bbe23d395ea0d99fdd28c2d37c6e389
+          DATATUG_VERSION: 0.55.0
+          DATATUG_SHA256: 1a485e5805ebfb37b6ddf436b10f1f536c5bfb1d822d67bd66fea451c4d9aec3
         run: |
           set -euo pipefail
           archive="datatug_${DATATUG_VERSION}_linux_amd64.tar.gz"
