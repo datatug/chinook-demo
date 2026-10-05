@@ -1,0 +1,44 @@
+{
+  "driver": "https-json",
+  "label": "Hypothetical research affiliation rows \u2014 pending public lookup admission",
+  "urlTemplate": "https://raw.githubusercontent.com/datatug/datatug-apps/e7362033ec79c6663d7dbe0483b62fab01f7b9cd/libs/datatug/main/src/lib/queries/fixtures/public-data-fabric/{table}.json",
+  "keys": {
+    "affiliations": "affiliation_id"
+  },
+  "sha256": {
+    "affiliations": "44a30dd260c74f43b2138934cca0bccd493c7b804e124c5ecbded3c41226e543"
+  },
+  "sourceModel": {
+    "schema": {
+      "repository": "https://github.com/datatug/datatug-apps",
+      "revision": "e7362033ec79c6663d7dbe0483b62fab01f7b9cd",
+      "path": "libs/datatug/main/src/lib/queries/fixtures/public-data-fabric/affiliations.modelspec.json",
+      "sha256": "cfe958f12d9a70bb7533499b76bf01c9447f81f0862852e460b095bb75e1b9cf"
+    },
+    "module": "affiliations",
+    "moduleId": "github.com/datatug/datatug-apps/affiliations",
+    "tables": [
+      {
+        "schema": "",
+        "name": "affiliations",
+        "entity": "Affiliation",
+        "key": "affiliation_id",
+        "fields": [
+          {
+            "name": "affiliation_id",
+            "property": "affiliation_id",
+            "datatype": "string",
+            "nullable": false
+          },
+          {
+            "name": "ror_id",
+            "property": "ror_id",
+            "datatype": "string",
+            "nullable": true,
+            "namespace": "ROR:URL"
+          }
+        ]
+      }
+    ]
+  }
+}

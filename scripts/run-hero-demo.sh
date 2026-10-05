@@ -39,7 +39,7 @@
 #                     SHA-256 must still equal the pin
 #   OVDB_PORT         with --ovdb: serve OVDB on exactly this port, no fallback
 #   DATATUG, OVDB     binaries (default: from PATH)
-# Needs: bash, python3 (3.10+), curl, datatug >= 0.51.0 (and ovdb >= 0.19.0 with --ovdb).
+# Needs: bash, python3 (3.10+), curl, datatug >= 0.55.0 (and ovdb >= 0.19.0 with --ovdb).
 set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -47,7 +47,7 @@ project="$root"
 data="$project/.demo-data"
 datatug="${DATATUG:-datatug}"
 ovdb="${OVDB:-ovdb}"
-min_datatug="0.51.0"
+min_datatug="0.55.0"
 min_ovdb="0.19.0"
 as_json=0
 with_ovdb=0
