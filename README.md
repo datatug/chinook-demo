@@ -1,4 +1,8 @@
-# chinook-demo
+# Chinook demo: historical example
+
+The maintained DataTug demo is [datatug/datatug-demo-project](https://github.com/datatug/datatug-demo-project/tree/main/demo-project-1), containing all six DemoDB datasets and their storage editions. Use that single project for current demo connections. This repository retains the earlier Chinook hero-query example and its recorded provenance.
+
+## Historical example
 
 A demo [DataTug](https://datatug.app) project, and the repository is the project: its root
 holds `datatug-project.json`, the saved queries, the entities, the access policies and the
